@@ -1,8 +1,11 @@
 # ML Project — Income Classification (Adult Dataset)
+---
+
+## Overview
 
 This repository contains a complete, reproducible workflow to predict **income category** (`<=50K` vs `>50K`) from demographic and work-related attributes using multiple linear classifiers. The project is implemented in a Jupyter notebook (`ML_Project1.ipynb`) and covers custom implementations of **Perceptron** and **Adaline (GD)** as well as scikit‑learn baselines (**Perceptron**, **Adaline**, **Logistic Regression**, and **SVM**).
 
-> **Dataset**: The project uses a two CSV datasets, (`project_adult.csv`) for training and a separate validation input file (`project_validation_inputs.csv`) for generating final predictions. These datasets are an extraction from the 1994 Census database.
+> **Dataset**: The project uses a two CSV datasets - (`project_adult.csv`) for training and (`project_validation_inputs.csv`) for validation/testing. These datasets are an extraction from the 1994 Census database.
 
 ---
 
@@ -33,10 +36,11 @@ This repository contains a complete, reproducible workflow to predict **income c
 ## Data
 
 - **Training data**: `project_adult.csv`  
-  Typical columns include: `age`, `education`, `hours_per_week`, plus other demographic/work fields, with the label `income`.
-- **Validation inputs**: `project_validation_inputs.csv` (no `income` column).
+  Typical columns include: `age`, `education`, `hours_per_week`, plus other demographic/work fields, including an `income` column.
+- **Testing data (validation inputs)**: `project_validation_inputs.csv`
+  Typical columns include: `age`, `education`, `hours_per_week`, plus other demographic/work fields, **NOT** including an `income` column.
 
-Target:
+Target Variable:
 - `income` — binary target indicating whether the individual’s income is `<=50K` or `>50K`.
 
 ---
@@ -44,44 +48,54 @@ Target:
 ## Preprocessing
 
 The notebook performs:
-- **Basic cleaning** via a helper (`basic_clean`): trims, normalizes strings (e.g., replace spaces and hyphens with underscores), and checks for invalid values.
-- **Type safety** utilities: `has_nan_or_inf`, `ensure_samples_by_features`.
-- **Standardization** of numeric features using `StandardScaler`.
-- Categorical handling: one‑hot/dummy encoding inside the notebook (and/or via model pipelines), ensuring the training/validation matrices align.
+- **Basic cleaning** via `basic_clean()`: trims whitespace, normalizes text (e.g., replace spaces/hyphens with underscores), and checks for invalid values
+- **Type safety utilities:** `has_nan_or_inf`, `ensure_samples_by_features`
+- **Standardization** of numeric features using `StandardScaler`
+- **Categorical handling**: one‑hot encoding ensuring the training and validation matrices align
 
 ---
 
 ## Models
 
 ### Custom Implementations
-- **Perceptron (custom)**: online update when a sample is misclassified (threshold at 0). Evaluated by **training accuracy** and validation predictions.
-- **Adaline (GD)**: batch gradient descent on **mean squared error** loss. Tracked **MSE per epoch** and selected the **best epoch** by minimum training MSE.
-
-Key training hyperparameters found in the notebook:
+**Perceptron (custom)**:
+- Determines the number of adjustments made for misclassified sample per epoch
+- Hyperparameters:
 - `N_EPOCHS = 30`
-- `THRESH = 0.5` (for converting Adaline raw scores to class labels)
-- Reproducible shuffles via a fixed random seed
+- `eta = 0.1`
+- `THRESH = 0.0`
 
-### scikit‑learn Baselines
-- **Perceptron** — linear classifier using perceptron criterion
-- **LogisticRegression** — linear log‑loss classifier
-- **SVM (linear)** — linear support vector classifier
+**Adaline (book code)**
+- Calculates the avg squared difference between the model's predicted output and the actual labels per epoch
+- Hyperparameters:
+- `N_EPOCHS = 30`
+- `ETA_ADAL = 0.01`
+- `THRESH = 0.5` (for converting Adaline raw scores to class labels)
+
+**Scikit-learn Baselines**
+
+**Perceptron (skearn)**
+— Linear classifier using perceptron criterion
+
+**Adaline (GD; Scikit-Learn)**
+- Gradient descent-based linear model 
+
+**LogisticRegression**
+— Linear log‑loss classifier
+- Outputs probability estimates
+- Hyperparameters:
+- `MAV_ITERS = 10000`
+- `C_GRID = 0.01, 1.0, 100.0`
+- `penalty = l2`
+  
+**SVM (linear)**
+- Linear support vector classifier
+- Hyperparameters:
+- `MAV_ITERS = 10000`
+- `C_GRID = 0.01, 1.0, 100.0`
+- `penalty = l2`
 
 > Where applicable, models are wrapped in scikit‑learn **Pipelines** with standardization.
-
----
-
-## Metrics & Plots
-
-- **Classification**: `accuracy_score` on training (and optionally hold‑out splits).
-- **Regression proxy (Adaline)**: `mean_squared_error` on raw outputs per epoch.
-- **Visualization**: Adaline **TRAIN MSE vs. epoch** line plot to illustrate convergence and to pick the best epoch.
-
-> The notebook prints messages like:  
-> `Training accuracy at best epoch: ...`  
-> `Best Adaline epoch by TRAIN MSE: ... (MSE=...)`
-
-Replace the ellipses with your specific numbers after running the notebook.
 
 ---
 
@@ -92,7 +106,7 @@ Replace the ellipses with your specific numbers after running the notebook.
    ```bash
    pip install -r requirements.txt
    ```
-   If you don’t have a `requirements.txt`, see the list below.
+   If `requirements.txt` is missing, see below for key packages.
 3. **Launch** Jupyter and open the notebook:
    ```bash
    jupyter lab
@@ -111,19 +125,7 @@ Replace the ellipses with your specific numbers after running the notebook.
 - `Group_11_LogisticRegression_PredictedOutputs.csv`
 - `Group_11_SVM_PredictedOutputs.csv`
 
-Each CSV contains a single column with the predicted income category per validation row.
-
----
-
-## Example: Reproducing Predictions (CLI)
-
-If you extract the model‑training and prediction code into a script (optional), you might run something like:
-
-```bash
-python train_and_predict.py   --train_csv project_adult.csv   --valid_csv project_validation_inputs.csv   --model perceptron   --out Group_11_Perceptron_PredictedOutputs.csv
-```
-
-> The notebook already performs these steps; the script example is provided for a future refactor.
+Each CSV contains one column with the predicted income category per validation row.
 
 ---
 
@@ -134,10 +136,6 @@ _Core packages used in the notebook:_
 - `pandas`
 - `matplotlib`
 - `scikit-learn`
-
-Optional (if added later):
-- `jupyterlab` or `notebook`
-- `seaborn` (for enhanced visuals)
 
 You can generate a starter `requirements.txt` with:
 ```bash
@@ -150,19 +148,13 @@ pip freeze | grep -E "numpy|pandas|matplotlib|scikit-learn" > requirements.txt
 
 | Model                 | Metric            | Score  |
 |----------------------:|-------------------|-------:|
-| Custom Perceptron     | Accuracy (train)  | _…_    |
-| Custom Adaline (best epoch) | MSE (train) | _…_    |
-| sklearn Perceptron    | Accuracy (train)  | _…_    |
-| Logistic Regression   | Accuracy (train)  | _…_    |
-| Linear SVM            | Accuracy (train)  | _…_    |
+| Custom Perceptron (best epoch)| Accuracy (train)| 82.82% |
+| Custom Adaline (best epoch) | MSE (train) | 78.33% |
+| sklearn Perceptron    | Accuracy (train)  | 81.98% |
+| sklearn Adaline       | Accuracy (train)  | 84.04% |
+| Logistic Regression (best C)  | Accuracy (train)  | 85.18%|
+| Linear SVM          (best C)  | Accuracy (train)  | 85.19%|
 
-Include any confusion matrices or ROC curves you compute as images/screenshots if desired.
 
----
 
-## Notes & Design Choices
-
-- **Why compare custom vs. sklearn?** To understand optimization behavior and convergence diagnostics (especially MSE for Adaline) and to benchmark against mature implementations.
-- **Why standardize?** Linear margin‑based models often benefit from standardized features for stable optimization and consistent learning rates across features.
-- **Why MSE for Adaline?** Adaline is historically trained via least‑squares; monitoring MSE reveals convergence trends even though the final task is classification.
 
